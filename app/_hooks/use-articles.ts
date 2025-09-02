@@ -63,29 +63,42 @@ export function useArticles() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchArticles = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      
-      // 실제 API 호출을 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setArticles(mockArticles)
-    } catch (err) {
-      setError('기사를 불러오는데 실패했습니다.')
-      console.error('Error fetching articles:', err)
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    let isMounted = true
+    
+    const fetchArticles = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        // 실제 API 호출을 시뮬레이션
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        if (isMounted) {
+          setArticles(mockArticles)
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError('기사를 불러오는데 실패했습니다.')
+          console.error('Error fetching articles:', err)
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchArticles()
+    
+    return () => {
+      isMounted = false
     }
   }, [])
 
-  useEffect(() => {
-    fetchArticles()
-  }, [fetchArticles])
-
   const refetch = useCallback(() => {
-    fetchArticles()
-  }, [fetchArticles])
+    window.location.reload()
+  }, [])
 
   return { articles, loading, error, refetch }
 }
